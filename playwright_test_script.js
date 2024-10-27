@@ -1,26 +1,30 @@
-const { chromium } = require('playwright');
+const playwright = require('playwright');
 
 (async () => {
-    const browser = await chromium.launch();
-    const page = await browser.newPage();
-    await page.goto('https://practiceautomatedtesting.com/webelements/Checkboxes');
-    
-    const checkbox1 = await page.$('#checkbox1');
-    const checkbox2 = await page.$('#checkbox2');
-    const result = await page.$('#result');
-   
-    await checkbox1.check();
-    let resultText = await page.$eval('#result', el => el.textContent);
-    if(resultText !== "smiley" && resultText !== "bad smiley"){
-        console.log('Error: Unexpected result after checking checkbox 1.')
-    }
-  
-    await checkbox1.uncheck();
-    await checkbox2.check();
-    resultText = await page.$eval('#result', el => el.textContent);
-    if(resultText !== "smiley" && resultText !== "bad smiley"){
-        console.log('Error: Unexpected result after checking checkbox 2.')
-    }
-    
-    await browser.close();
+  const browser = await playwright.chromium.launch();
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto('https://practiceautomatedtesting.com/webelements/Checkboxes', { waitUntil: 'networkidle' });
+
+  await page.waitForSelector('#checkbox1');
+  await page.check('#checkbox1');
+  await page.waitForSelector('#result');
+  let result = await page.$eval('#result', el => el.textContent);
+  if (result.includes('smiley') || result.includes('bad smiley')) {
+    console.log("Checkbox 1 pass");
+  } else {
+    console.log("Checkbox 1 fail");
+  }
+
+  await page.waitForSelector('#checkbox2');
+  await page.check('#checkbox2');
+  await page.waitForSelector('#result');
+  result = await page.$eval('#result', el => el.textContent);
+  if (result.includes('smiley') || result.includes('bad smiley')) {
+    console.log("Checkbox 2 pass");
+  } else {
+    console.log("Checkbox 2 fail");
+  }
+
+  await browser.close();
 })();

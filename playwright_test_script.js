@@ -1,29 +1,23 @@
-const playwright = require('playwright');
+const { chromium } = require('playwright');
 
 (async () => {
-  const browser = await playwright.chromium.launch();
-  const context = await browser.newContext();
-  const page = await context.newPage();
-  await page.goto('https://practiceautomatedtesting.com/webelements/Checkboxes', { waitUntil: 'networkidle' });
+  const browser = await chromium.launch();
+  const page = await browser.newPage();
+  await page.goto('https://practiceautomatedtesting.com/webelements/Checkboxes');
 
-  await page.waitForSelector('#checkbox1');
-  await page.check('#checkbox1');
-  await page.waitForSelector('#result');
-  let result = await page.$eval('#result', el => el.textContent);
-  if (result.includes('smiley') || result.includes('bad smiley')) {
-    console.log("Checkbox 1 pass");
-  } else {
-    console.log("Checkbox 1 fail");
-  }
-
-  await page.waitForSelector('#checkbox2');
-  await page.check('#checkbox2');
-  await page.waitForSelector('#result');
-  result = await page.$eval('#result', el => el.textContent);
-  if (result.includes('smiley') || result.includes('bad smiley')) {
-    console.log("Checkbox 2 pass");
-  } else {
-    console.log("Checkbox 2 fail");
+  const checkboxIds = ['checkbox1', 'checkbox2'];
+  for (let id of checkboxIds) {
+    await page.waitForSelector(`#${id}`);
+    await page.check(`#${id}`);
+    const checkedValue = await page.$eval(`#${id}`, el => el.checked);
+    if (checkedValue) {
+      const result = await page.$eval('#result', el => el.innerText);
+      const isSmiley = result.includes('☺');
+      const isBadSmiley = result.includes('☹');
+      console.assert(isSmiley || isBadSmiley, `Expected smiley or bad smiley, got ${result}`);
+    } else {
+      console.error(`Checkbox ${id} could not be checked.`);
+    }
   }
 
   await browser.close();

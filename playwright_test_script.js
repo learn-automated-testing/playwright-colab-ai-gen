@@ -1,43 +1,34 @@
 ```javascript
-const { chromium } = require('playwright');
+const { firefox } = require('playwright');
 
 (async () => {
-  // Initialize new browser instance
-  const browser = await chromium.launch();
+  const browser = await firefox.launch();
   const page = await browser.newPage();
   
-  // Go to the webpage
   await page.goto('https://practiceautomatedtesting.com/webelements/Checkboxes');
-  
-  // Wait for the checkboxes appear in the page.
-  await page.waitForSelector('#checkbox1');
-  await page.waitForSelector('#checkbox2');
-  
-  // Select the checkboxes
-  const checkboxIds = ['checkbox1', 'checkbox2'];
-  for (let id of checkboxIds) {
-    // Check the checkbox
-    await page.check(`#${id}`);
 
-    // Verify the display after checking the checkbox
-    const isSmiley = await page.evaluate(() => {
-      // Access to the result element
-      const result = document.getElementById("result");
-      
-      // Confirm if it displays a smiley
-      const smiley = result.innerHTML.includes("smiley");
-
-      return smiley;
-    });
+  // Check checkboxes and validate the result
+  for (let i = 1; i <= 2; i++) {
+    await page.waitForSelector(`#checkbox${i}`);
+    await page.click(`#checkbox${i}`);
     
-    console.log(`Checkbox ${id}: ${ isSmiley ? 'smiley' : 'bad smiley' }`);
-
-    // uncheck before moving to the next one
-    await page.uncheck(`#${id}`);
+    // Verify display
+    const result = await page.$eval('#result', element => element.textContent.trim());
+    
+    if(result.includes('smiley')){
+      console.log(`Checkbox ${i} selection verified, displays a smiley.`);
+    } else if(result.includes('bad smiley')){
+      console.log(`Checkbox ${i} selection verified, displays a bad smiley.`);
+    } else {
+      console.warn(`Checkbox ${i} selection could not be verified.`);
+    }
+    
+    // Uncheck the current checkbox
+    await page.click(`#checkbox${i}`);
   }
   
-  // Close the browser
   await browser.close();
 })();
 ```
-The code is a simplified example of using the Playwright library for automated browser testing. The script launches a new instance of a browser, goes to the website, waits for the checkboxes to load, selects each of them one by one and validates the outcome by analyzing the inner HTML of the "result" element. If a smiley is returned after checking a checkbox it logs 'smiley', otherwise 'bad smiley'. After the checking and validation, it deselects the checkbox before moving to the next one. At the end the browser is closed.
+
+This code assumes you have installed the 'playwright' npm package. If not, you can run 'npm i playwright' if you use node package manager as your package manager. You may need to update the selectors to match the actual webpage structure. 
